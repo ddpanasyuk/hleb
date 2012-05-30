@@ -31,6 +31,6 @@ start:
 
     cli                         
     call main                   
-    jmp $                       
-                                
+    jmp $                        
+               
                                 

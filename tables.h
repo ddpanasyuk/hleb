@@ -63,13 +63,22 @@ struct idt_struct
 }__attribute__((packed));
 typedef struct idt_struct idt_struct_t;
 
+struct idtptr_struct
+{
+  u16int limit;
+  u16int base;
+}__attribute__((packed));
+typedef struct idtptr_struct idtptr_struct_t;
+
 void setup_tables();
 
 void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int gran);
 void create_idt_entry(u8int num, u32int base, u16int select, u8int flags);
 void create_tss_entry(s32int num, u32int base);
 
-void gdt_flush(u32int addr);
-void idt_flush(u32int addr);
+#define ISR_AMOUNT 31
+//Array for our ISRs
+void (*isr_array[ISR_AMOUNT])();
+
 
 #endif

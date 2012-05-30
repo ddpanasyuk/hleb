@@ -1,33 +1,34 @@
 #include "tables.h"
 
+extern void gdt_flush(u32int addr);
+extern void idt_flush(u32int addr);
+extern void *ISR_MACRO_LOC;
+
 gdt_struct_t gdt_entry_array[4];
 gdtptr_struct_t gdt_ptr;
 tss_struct_t tss_entry;
 
-void gdt_flush(u32int addr)
-{
-  asm volatile(".intel_syntax noprefix \n mov eax, [esp+4] \n lgdt [eax] \n mov ax, 0x10 \n");
-  asm volatile("mov ds, ax \n mov es, ax \n mov fs, ax \n mov gs, ax \n");
-  asm volatile("mov ss, ax \n jmp 0x08:.flush \n .flush: \n .att_syntax prefix \n ret \n");
-}
+idt_struct_t idt_entry_array[256];
+idtptr_struct_t idt_ptr;
 
-void idt_flush(u32int addr)
-{
-  asm volatile(".intel_syntax noprefix \n mov eax, [esp+4] \n lidt [eax] \n");
-  asm volatile(".att_syntax prefix \n ret \n");
-}
 
 void setup_tables()
 {
-  gdt_ptr.limit = (sizeof(gdt_struct_t) * 4) - 1;
+  gdt_ptr.limit = (sizeof(gdt_struct_t) * 3) - 1;
   gdt_ptr.base = (u32int)&gdt_entry_array;
   
   create_gdt_entry(0, 0, 0, 0, 0);
   create_gdt_entry(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
   create_gdt_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-  create_tss_entry(4, (u32int)&tss_entry);
+  //create_tss_entry(4, (u32int)&tss_entry);
   
   gdt_flush((u32int)&gdt_ptr);
+  
+  int i;
+  for(i = 0; i < ISR_AMOUNT; i++)
+  {
+    isr_array[i] = ISR_MACRO_LOC + (4 * i);
+  }
 }
 
 void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int gran)
@@ -44,4 +45,14 @@ void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int
 void create_tss_entry(s32int num, u32int base)
 {
   create_gdt_entry(num, base, sizeof(tss_struct_t), 0x89, 0x40);
+}
+
+void create_idt_entry(u8int num, u32int base, u16int select, u8int flags)
+{
+  idt_entry_array[num].offsetone = base & 0xFFFF;
+  idt_entry_array[num].offsettwo = (base >> 16) & 0xFFFF;
+  
+  idt_entry_array[num].select = select;
+  idt_entry_array[num].attrib = flags;
+  idt_entry_array[num].zero   = 0;
 }
