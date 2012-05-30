@@ -7,5 +7,7 @@ int main()
   kclear();
   kprint("hleb kernel\n\0");
   kprint_hex(0x1245ABCD);
+  
+  asm volatile("int $0x03");
   return 0;
 }

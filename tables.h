@@ -3,82 +3,78 @@
 
 #include "size.h"
 
-struct gdt_struct
+struct gdt_entry_struct
 {
-  u16int limit;
-  u16int low_base;
-  u8int  middle_base;
-  u8int  access;
-  u8int  gran;
-  u8int  high_base;
-}__attribute__((packed));
-typedef struct gdt_struct gdt_struct_t;
+    u16int limit_low;          
+    u16int base_low;     
+    u8int  base_middle;  
+    u8int  access;           
+    u8int  granularity;
+    u8int  base_high;      
+} __attribute__((packed));
 
-struct gdtptr_struct
-{
-  u16int limit;
-  u32int base;
-}__attribute__((packed));
-typedef struct gdtptr_struct gdtptr_struct_t;
+typedef struct gdt_entry_struct gdt_entry_t;
 
-struct tss_struct
+struct gdt_ptr_struct
 {
-  u32int reserved;
-  u32int esp0;
-  u32int ss0;
-  u32int esp1;       // Unused...
-  u32int ss1;
-  u32int esp2;
-  u32int ss2;
-  u32int cr3;
-  u32int eip;
-  u32int eflags;
-  u32int eax;
-  u32int ecx;
-  u32int edx;
-  u32int ebx;
-  u32int esp;
-  u32int ebp;
-  u32int esi;
-  u32int edi;
-  u32int es;         
-  u32int cs;        
-  u32int ss;      
-  u32int ds;        
-  u32int fs;    
-  u32int gs;      
-  u32int ldt;        
-  u16int trap;
-  u16int iopb;
-}__attribute__((packed));
-typedef struct tss_struct tss_struct_t;
+    u16int limit;          
+    u32int base;             
+} __attribute__((packed));
 
-struct idt_struct
-{
-  u16int offsetone;
-  u16int select;
-  u8int  zero;
-  u8int  attrib;
-  u16int offsettwo;
-}__attribute__((packed));
-typedef struct idt_struct idt_struct_t;
+typedef struct gdt_ptr_struct gdt_ptr_t;
 
-struct idtptr_struct
+struct idt_entry_struct
 {
-  u16int limit;
-  u16int base;
-}__attribute__((packed));
-typedef struct idtptr_struct idtptr_struct_t;
+    u16int base_lo;             
+    u16int sel;                
+    u8int  always0;           
+    u8int  flags;             
+    u16int base_hi;           
+} __attribute__((packed));
+
+typedef struct idt_entry_struct idt_entry_t;
+
+struct idt_ptr_struct
+{
+    u16int limit;
+    u32int base;               
+} __attribute__((packed));
+
+typedef struct idt_ptr_struct idt_ptr_t;
 
 void setup_tables();
 
-void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int gran);
-void create_idt_entry(u8int num, u32int base, u16int select, u8int flags);
-void create_tss_entry(s32int num, u32int base);
-
-#define ISR_AMOUNT 31
-//Array for our ISRs
-void (*isr_array[ISR_AMOUNT])();
-
+extern void isr0 ();
+extern void isr1 ();
+extern void isr2 ();
+extern void isr3 ();
+extern void isr4 ();
+extern void isr5 ();
+extern void isr6 ();
+extern void isr7 ();
+extern void isr8 ();
+extern void isr9 ();
+extern void isr10();
+extern void isr11();
+extern void isr12();
+extern void isr13();
+extern void isr14();
+extern void isr15();
+extern void isr16();
+extern void isr17();
+extern void isr18();
+extern void isr19();
+extern void isr20();
+extern void isr21();
+extern void isr22();
+extern void isr23();
+extern void isr24();
+extern void isr25();
+extern void isr26();
+extern void isr27();
+extern void isr28();
+extern void isr29();
+extern void isr30();
+extern void isr31();
 
 #endif

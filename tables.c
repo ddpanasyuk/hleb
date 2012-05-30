@@ -1,63 +1,98 @@
 #include "tables.h"
 
-extern void gdt_flush(u32int addr);
-extern void idt_flush(u32int addr);
-extern void *ISR_MACRO_LOC;
+extern void gdt_flush(u32int);
+extern void idt_flush(u32int);
 
-gdt_struct_t gdt_entry_array[4];
-gdtptr_struct_t gdt_ptr;
-tss_struct_t tss_entry;
+static void init_gdt();
+static void init_idt();
+static void gdt_set_gate(s32int,u32int,u32int,u8int,u8int);
+static void idt_set_gate(u8int,u32int,u16int,u8int);
 
-idt_struct_t idt_entry_array[256];
-idtptr_struct_t idt_ptr;
-
+gdt_entry_t gdt_entries[3];
+gdt_ptr_t   gdt_ptr;
+idt_entry_t idt_entries[256];
+idt_ptr_t   idt_ptr;
 
 void setup_tables()
 {
-  //Set up GDT
-  gdt_ptr.limit = (sizeof(gdt_struct_t) * 3) - 1;
-  gdt_ptr.base = (u32int)&gdt_entry_array;
-  
-  create_gdt_entry(0, 0, 0, 0, 0);
-  create_gdt_entry(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
-  create_gdt_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-  //create_tss_entry(4, (u32int)&tss_entry);
-  
-  gdt_flush((u32int)&gdt_ptr);
-  
-  //Set up IDT
-  int i;
-  for(i = 0; i < ISR_AMOUNT; i++)
-  {
-    isr_array[i] = ISR_MACRO_LOC + (4 * i);
-    create_idt_entry(i, (u32int)&isr_array[i], 0x08, 0x8E);
-  }
-  idt_flush((u32int)&idt_ptr);
-  
+    init_gdt();
+    init_idt();
 }
 
-void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int gran)
+static void init_gdt()
 {
-  gdt_entry_array[num].low_base 	= base & 0xFFFF;
-  gdt_entry_array[num].middle_base 	= (base >> 16) & 0xFF;
-  gdt_entry_array[num].high_base	= (base >> 24) & 0xFF;
-  gdt_entry_array[num].limit		= limit & 0xFFFF;
-  gdt_entry_array[num].gran		= (limit >> 16) & 0x0F;
-  gdt_entry_array[num].gran		|= gran & 0xF0;
-  gdt_entry_array[num].access		= access;
+    gdt_ptr.limit = (sizeof(gdt_entry_t) * 3) - 1;
+    gdt_ptr.base  = (u32int)&gdt_entries;
+
+    gdt_set_gate(0, 0, 0, 0, 0);                
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
+
+    gdt_flush((u32int)&gdt_ptr);
 }
 
-void create_tss_entry(s32int num, u32int base)
+static void gdt_set_gate(s32int num, u32int base, u32int limit, u8int access, u8int gran)
 {
-  create_gdt_entry(num, base, sizeof(tss_struct_t), 0x89, 0x40);
+    gdt_entries[num].base_low    = (base & 0xFFFF);
+    gdt_entries[num].base_middle = (base >> 16) & 0xFF;
+    gdt_entries[num].base_high   = (base >> 24) & 0xFF;
+
+    gdt_entries[num].limit_low   = (limit & 0xFFFF);
+    gdt_entries[num].granularity = (limit >> 16) & 0x0F;
+    
+    gdt_entries[num].granularity |= gran & 0xF0;
+    gdt_entries[num].access      = access;
 }
 
-void create_idt_entry(u8int num, u32int base, u16int select, u8int flags)
+static void init_idt()
 {
-  idt_entry_array[num].offsetone = base & 0xFFFF;
-  idt_entry_array[num].offsettwo = (base >> 16) & 0xFFFF;
-  
-  idt_entry_array[num].select = select;
-  idt_entry_array[num].attrib = flags;
-  idt_entry_array[num].zero   = 0;
+    idt_ptr.limit = sizeof(idt_entry_t) * 256 -1;
+    idt_ptr.base  = (u32int)&idt_entries;
+
+    memset(&idt_entries, 0, sizeof(idt_entry_t)*256);
+
+    idt_set_gate( 0, (u32int)isr0 , 0x08, 0x8E);
+    idt_set_gate( 1, (u32int)isr1 , 0x08, 0x8E);
+    idt_set_gate( 2, (u32int)isr2 , 0x08, 0x8E);
+    idt_set_gate( 3, (u32int)isr3 , 0x08, 0x8E);
+    idt_set_gate( 4, (u32int)isr4 , 0x08, 0x8E);
+    idt_set_gate( 5, (u32int)isr5 , 0x08, 0x8E);
+    idt_set_gate( 6, (u32int)isr6 , 0x08, 0x8E);
+    idt_set_gate( 7, (u32int)isr7 , 0x08, 0x8E);
+    idt_set_gate( 8, (u32int)isr8 , 0x08, 0x8E);
+    idt_set_gate( 9, (u32int)isr9 , 0x08, 0x8E);
+    idt_set_gate(10, (u32int)isr10, 0x08, 0x8E);
+    idt_set_gate(11, (u32int)isr11, 0x08, 0x8E);
+    idt_set_gate(12, (u32int)isr12, 0x08, 0x8E);
+    idt_set_gate(13, (u32int)isr13, 0x08, 0x8E);
+    idt_set_gate(14, (u32int)isr14, 0x08, 0x8E);
+    idt_set_gate(15, (u32int)isr15, 0x08, 0x8E);
+    idt_set_gate(16, (u32int)isr16, 0x08, 0x8E);
+    idt_set_gate(17, (u32int)isr17, 0x08, 0x8E);
+    idt_set_gate(18, (u32int)isr18, 0x08, 0x8E);
+    idt_set_gate(19, (u32int)isr19, 0x08, 0x8E);
+    idt_set_gate(20, (u32int)isr20, 0x08, 0x8E);
+    idt_set_gate(21, (u32int)isr21, 0x08, 0x8E);
+    idt_set_gate(22, (u32int)isr22, 0x08, 0x8E);
+    idt_set_gate(23, (u32int)isr23, 0x08, 0x8E);
+    idt_set_gate(24, (u32int)isr24, 0x08, 0x8E);
+    idt_set_gate(25, (u32int)isr25, 0x08, 0x8E);
+    idt_set_gate(26, (u32int)isr26, 0x08, 0x8E);
+    idt_set_gate(27, (u32int)isr27, 0x08, 0x8E);
+    idt_set_gate(28, (u32int)isr28, 0x08, 0x8E);
+    idt_set_gate(29, (u32int)isr29, 0x08, 0x8E);
+    idt_set_gate(30, (u32int)isr30, 0x08, 0x8E);
+    idt_set_gate(31, (u32int)isr31, 0x08, 0x8E);
+
+    idt_flush((u32int)&idt_ptr);
+}
+
+static void idt_set_gate(u8int num, u32int base, u16int sel, u8int flags)
+{
+    idt_entries[num].base_lo = base & 0xFFFF;
+    idt_entries[num].base_hi = (base >> 16) & 0xFFFF;
+
+    idt_entries[num].sel     = sel;
+    idt_entries[num].always0 = 0;
+    idt_entries[num].flags   = flags;
 }
