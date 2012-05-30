@@ -7,6 +7,7 @@
 #define GREY_ON_BLACK 0x07
 
 void kprint(char* str);
+void kprint_hex(u32int num);
 void kput(char byte);
 void kclear();
 void kscroll();

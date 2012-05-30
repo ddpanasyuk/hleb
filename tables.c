@@ -14,6 +14,7 @@ idtptr_struct_t idt_ptr;
 
 void setup_tables()
 {
+  //Set up GDT
   gdt_ptr.limit = (sizeof(gdt_struct_t) * 3) - 1;
   gdt_ptr.base = (u32int)&gdt_entry_array;
   
@@ -24,11 +25,15 @@ void setup_tables()
   
   gdt_flush((u32int)&gdt_ptr);
   
+  //Set up IDT
   int i;
   for(i = 0; i < ISR_AMOUNT; i++)
   {
     isr_array[i] = ISR_MACRO_LOC + (4 * i);
+    create_idt_entry(i, (u32int)&isr_array[i], 0x08, 0x8E);
   }
+  idt_flush((u32int)&idt_ptr);
+  
 }
 
 void create_gdt_entry(s32int num, u32int base, u32int limit, u8int access, u8int gran)

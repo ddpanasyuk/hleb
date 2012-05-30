@@ -10,6 +10,32 @@ void kprint(char* str)
     kput(str[i]);
 }
 
+void kprint_hex(u32int num)
+{
+  int i;
+  char byte;
+  char is_zero = 0;
+  for(i = 28; i> 0; i -= 4)
+  {
+    byte = (num >> i) & 0xF;
+    if(byte == 0 && is_zero == 0)
+      continue;
+    else
+    {
+      if(byte <= 0x09)
+	kput(byte + 48);
+      else
+	kput(byte + (97 - 0x0A));
+      is_zero = 1;
+    }
+  }
+  byte = num & 0xF;
+  if(byte <= 0x09)
+    kput(byte + 48);
+  else
+    kput(byte + (97 - 0x0A));
+}
+
 void kput(char byte)
 {
   u16int screen_byte = GREY_ON_BLACK << 8 | byte;
