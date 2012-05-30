@@ -51,9 +51,11 @@ void kscroll()
   u16int byte = 0x00 << 8 | 0x20;
   u32int i;
   if(y >= 25)
+  {
     for(i = 0; i < 24 * 80; i++)
       loc[i] = loc[i + 80];
     for(i = 24*80; i < 25 * 80; i++)
       loc[i] = byte;
   y = 24;
+  }
 }
