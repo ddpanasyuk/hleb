@@ -2,12 +2,17 @@
 #define _ISR_H_
 #include "size.h"
 
-typedef struct registers
+struct registers
 {
     u32int ds;                  
     u32int edi, esi, ebp, esp, ebx, edx, ecx, eax; 
     u32int int_no, err_code;  
     u32int eip, cs, eflags, useresp, ss; 
-} registers_t;
+};
+
+typedef struct registers registers_t;
+
+void (*interrupt_func_array[256])(registers_t* regs);
+void add_interrupt(u8int num, void (*handler)(registers_t* regs));
 
 #endif
