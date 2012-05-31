@@ -2,6 +2,7 @@
 #define _ISR_H_
 #include "size.h"
 
+//Again, thanks JamesM for having documentation
 struct registers
 {
     u32int ds;                  

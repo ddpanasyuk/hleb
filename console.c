@@ -1,7 +1,7 @@
 #include "console.h"
 
-u8int x = 0;
-u8int y = 0;
+static u8int x = 0;
+static u8int y = 0;
 
 void kprint(char* str)
 {
