@@ -1,4 +1,4 @@
-SOURCES=boot.o main.o io.o console.o flush.o int.o tables.o isr.o mem.o
+SOURCES=boot.o main.o io.o console.o flush.o int.o tables.o isr.o mem.o keyboard.o time.o
 
 CFLAGS=-nostdlib -nostdinc -fno-builtin -fno-stack-protector
 LDFLAGS=-Tlink.ld
