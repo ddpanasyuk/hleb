@@ -5,6 +5,7 @@
 #include "multiboot_info.h"
 #include "isr.h"
 #include "system_call.h"
+#include "stream.h"
 
 extern u32int end;
 extern void prog_load(u32int load, u32int from);
@@ -26,6 +27,9 @@ int main(multiboot_info_t* mb_ptr)
   create_syscall(0x80);
   
   asm volatile("sti");
+  FILE* f_ptr = open(STDOUT, 0);
+  char* text = "hello world!";
+  write(f_ptr, (void*)text, strlen(text));
   /*
   if(mb_ptr->mods_count == 0)
     kprint("No GRUB modules found.\n");

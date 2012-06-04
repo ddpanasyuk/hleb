@@ -44,6 +44,7 @@ u8int shift_l = 0;
 u8int shift_r = 0;
 u8int new_key = 0;
 u8int echo = 1;
+u8int new_char = 0;
 
 u32int input_storage[256];
 
@@ -93,6 +94,7 @@ void keyboard_irq(registers_t* regs)
 	for(i = 0; i < 256; i++)
 	  input_storage[i + 1] = input_storage[i];
 	input_storage[0] = (u32int)ascii_char;
+	new_char = 1;
 	break;
     }
     //kput(kbdus[scan_code]);
@@ -107,15 +109,24 @@ u8int change_settings(u8int config)
 
 u8int getchar()
 {
+  new_char = 0;
   u8int ret_char;
-  do{
-  }while(input_storage[0] == 0);
-  if(input_storage[0])
+  while(new_char == 0)
   {
-    ret_char = (u8int)input_storage[0];
-    int i;
-    for(i = 0; i < 256; i++)
-      input_storage[i] = input_storage[i + 1];
-    return ret_char;
+    //do nothing
   }
+  ret_char = input_storage[0];
+  int i;
+  for(i = 0; i < 256; i++)
+    input_storage[i] = input_storage[i + 1];
+  return ret_char;
+}
+
+u8int read_keyboard_buff(char* buff, u32int len)
+{
+  int i;
+  for(i = 0; i < len; i++)
+    buff[i] = (char)input_storage[i];
+  for(i = 0; i < len; i++)
+    input_storage[i] = input_storage[i + len];
 }

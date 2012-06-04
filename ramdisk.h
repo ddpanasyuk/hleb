@@ -45,8 +45,6 @@ struct dir_info
   char name[16];
   u8int next_block_type;
 }__attribute__((packed));
-#define FILE 0
-#define DIR  1
 
 typedef struct ram_disk_info ram_disk_info_t;
 typedef struct file_info     file_info_t;
