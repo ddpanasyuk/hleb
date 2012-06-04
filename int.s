@@ -1,18 +1,28 @@
 ;Thanks JamesM for macro definitions 
  %macro ISR_NOERRCODE 1
-  isr%1:
-    cli                        
-    push byte 0                 
-    push byte %1                
-    jmp isr_handler_asm        
-%endmacro
-
-
-%macro ISR_ERRCODE 1
+  global isr%1
   isr%1:
     cli                         
+    push byte 0               
     push byte %1                
-    jmp isr_handler_asm
+    jmp isr_common_stub       
+%endmacro
+
+%macro ISR_ERRCODE 1
+  global isr%1
+  isr%1:
+    cli                        
+    push byte %1                
+    jmp isr_common_stub
+%endmacro
+
+%macro IRQ 2
+  global irq%1
+  irq%1:
+    cli
+    push byte 0
+    push byte %2
+    jmp irq_common_stub
 %endmacro
 
 ISR_NOERRCODE 0
@@ -47,50 +57,76 @@ ISR_NOERRCODE 28
 ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
+IRQ   0,    32
+IRQ   1,    33
+IRQ   2,    34
+IRQ   3,    35
+IRQ   4,    36
+IRQ   5,    37
+IRQ   6,    38
+IRQ   7,    39
+IRQ   8,    40
+IRQ   9,    41
+IRQ  10,    42
+IRQ  11,    43
+IRQ  12,    44
+IRQ  13,    45
+IRQ  14,    46
+IRQ  15,    47
+ISR_NOERRCODE 128
+ 
+; In isr.c
+extern isr_handler
 
-extern handle_interrupt
+isr_common_stub:
+    pushad                   
 
-isr_handler_asm:
-  pusha
-  
-  call handle_interrupt
-  
-  popa
-  add esp, 8
-  sti
-  iret
-  
-global ISR_MACRO_LOC
-ISR_MACRO_LOC: ;Our C code will use this to make an array of interrupts
-dd isr0
-dd isr1
-dd isr2
-dd isr3
-dd isr4
-dd isr5
-dd isr6
-dd isr7
-dd isr8
-dd isr9
-dd isr10
-dd isr11
-dd isr12
-dd isr13
-dd isr14
-dd isr15
-dd isr16
-dd isr17
-dd isr18
-dd isr19
-dd isr20
-dd isr21
-dd isr22
-dd isr23
-dd isr24
-dd isr25
-dd isr26
-dd isr27
-dd isr28
-dd isr29
-dd isr30
-dd isr31
+    mov ax, ds              
+    push eax                 
+
+    mov ax, 0x10  
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    call isr_handler
+
+    pop ebx        
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
+
+    popad                    
+    add esp, 8     
+    iret
+    
+extern irq_handler
+
+irq_common_stub:
+    pushad                    
+
+    mov ax, ds               
+    push eax                 
+
+    mov ax, 0x10  
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    call irq_handler
+
+    pop ebx       
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
+
+    popad                     
+    add esp, 8     
+    sti
+    iret           
+
+

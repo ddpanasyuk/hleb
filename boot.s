@@ -27,7 +27,7 @@ mboot:
 [EXTERN main]                   
 
 start:
-    push    ebx
+    push ebx
 
     cli                         
     call main                   
