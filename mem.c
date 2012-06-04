@@ -22,3 +22,14 @@ void kheapset(u32int addr)
 {
   at_memory = addr;
 }
+
+u8int strcmp(char* str_one, char* str_two)
+{
+  int i;
+  for(i = 0; str_one[i] != '\0'; i++)
+  {
+    if(str_one[i] != str_two[i])
+      return 1;
+  }
+  return 0;
+}

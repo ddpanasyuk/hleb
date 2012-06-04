@@ -26,6 +26,7 @@ int main(multiboot_info_t* mb_ptr)
   create_syscall(0x80);
   
   asm volatile("sti");
+  /*
   if(mb_ptr->mods_count == 0)
     kprint("No GRUB modules found.\n");
   else
@@ -39,7 +40,7 @@ int main(multiboot_info_t* mb_ptr)
     kprint_hex(mb_module->addr_start);
     kput('\n');
     
-    kprint("loading driver ");
+    kprint("loading program ");
     kprint((char*)mb_module->cmdline);
     kput('\n');
     u32int *prog_ptr = (u32int*)memret(10);
@@ -47,4 +48,5 @@ int main(multiboot_info_t* mb_ptr)
     kprint("successful return.\n");
   }
   return 0;
+  */
 }

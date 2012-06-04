@@ -1,59 +1,121 @@
 #include "keyboard.h" 
 
+unsigned char kbdus[128] =
+{
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8',	/* 9 */
+  '9', '0', '-', '=', '\b',	/* Backspace */
+  '\t',			/* Tab */
+  'q', 'w', 'e', 'r',	/* 19 */
+  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',	/* Enter key */
+    0,			/* 29   - Control */
+  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
+ '\'', '`',   0,		/* Left shift */
+ '\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
+  'm', ',', '.', '/',   0,				/* Right shift */
+  '*',
+    0,	/* Alt */
+  ' ',	/* Space bar */
+    0,	/* Caps lock */
+    0,	/* 59 - F1 key ... > */
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,	/* < ... F10 */
+    0,	/* 69 - Num lock*/
+    0,	/* Scroll Lock */
+    0,	/* Home key */
+    0,	/* Up Arrow */
+    0,	/* Page Up */
+  '-',
+    0,	/* Left Arrow */
+    0,
+    0,	/* Right Arrow */
+  '+',
+    0,	/* 79 - End key*/
+    0,	/* Down Arrow */
+    0,	/* Page Down */
+    0,	/* Insert Key */
+    0,	/* Delete Key */
+    0,   0,   0,
+    0,	/* F11 Key */
+    0,	/* F12 Key */
+    0,	/* All other keys are undefined */
+};		
+
+u8int shift_l = 0;
+u8int shift_r = 0;
+u8int new_key = 0;
+u8int echo = 1;
+
+u32int input_storage[256];
+
 u8int init_keyboard()
 {
-  u8int test = 0;
-  u8int num_channel = 1;
-  asm volatile("cli");
-  out(PORT_COMMAND, 0xAD);
-  out(PORT_COMMAND, 0xA7);
-  in(PORT_DATA); //Disable devices and clean outport port
-  
-  out(PORT_COMMAND, 0x20); //Get current config
-  u8int temp = in(PORT_DATA);
-  //if(CONFIG_SECOND_CLOCK(temp)) // is it a dual channel devices
-  //  num_channel = 2;
-    
-  //kprint_hex(temp);
-  
-  temp &= 0b10111100;
-  u8int config = temp;
-  out(PORT_COMMAND, 0x60);
-  out(PORT_DATA, temp);
-  
-  out(PORT_COMMAND, 0xAA);
-  do{test = in(PORT_COMMAND);}while(!(test & 0b00000001));
-  temp = in(PORT_DATA);
-  if(temp == 0x55)
-    kprint("controller self test success \n\0");
-  
-  out(PORT_COMMAND, 0xAB);
-  do{test = in(PORT_COMMAND);}while(!(test & 0b00000001));
-  temp = in(PORT_DATA);
-  if(temp == 0x55)
-    kprint("first ps/2 port working \n\0");
-  
-  out(PORT_COMMAND, 0xAE);
-  
-  config |= 0b00000001;
-  out(PORT_COMMAND, 0x60);
-  do{test = in(PORT_COMMAND);}while(test & 0b00000010);
-  out(PORT_DATA, config);
-  
-  out(PORT_COMMAND, 0x20);
-  temp = in(PORT_DATA);
-  kprint_hex(temp);
-  
-  out(0xD1, 0xFF);
-  temp = in(PORT_DATA);
-  if(temp == 0xFA)
-    kprint("success\n\0");
-  
   add_interrupt(IRQ1, (void*)&keyboard_irq);
 }
 
 void keyboard_irq(registers_t* regs)
 {
-  regs->eax = in(PORT_DATA);
-  kprint("keyboard IRQ fired\n\0");
+  unsigned char scan_code = in(0x60);
+  unsigned char ascii_char;
+  if(scan_code & 0x80)
+  {
+    switch(scan_code)
+    {
+      case 0xB6: //right shift
+	shift_r = 0;
+	break;
+      case 0xAA: //left shift
+	shift_l = 0;
+	break;
+    }
+  }
+  else
+  {
+    switch(scan_code)
+    {
+      case 0x36: //right shift
+	shift_r = 1;
+	break;
+      case 0x2A: //left shit
+	shift_l = 1;
+	break;
+      case 0x0E: //backspace
+	kput(0x08);
+	kput(' ');
+	kput(0x08);
+	break;
+      default:
+	ascii_char = kbdus[scan_code];
+	if(shift_l == 1 || shift_r == 1)
+	  ascii_char -= 32;
+	if(echo == 1)
+	  kput(ascii_char);
+	int i;
+	for(i = 0; i < 256; i++)
+	  input_storage[i + 1] = input_storage[i];
+	input_storage[0] = (u32int)ascii_char;
+	break;
+    }
+    //kput(kbdus[scan_code]);
+  }
+}
+
+u8int change_settings(u8int config)
+{
+  if(config & ECHO)
+    echo = (~echo) & ECHO;
+}
+
+u8int getchar()
+{
+  u8int ret_char;
+  do{
+  }while(input_storage[0] == 0);
+  if(input_storage[0])
+  {
+    ret_char = (u8int)input_storage[0];
+    int i;
+    for(i = 0; i < 256; i++)
+      input_storage[i] = input_storage[i + 1];
+    return ret_char;
+  }
 }

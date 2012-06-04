@@ -39,14 +39,19 @@ void kprint_hex(u32int num)
 void kput(char byte)
 {
   u16int screen_byte = GREY_ON_BLACK << 8 | byte;
-  u16int *loc = ((y * 80 + x) * 2) + VIDEO_MEM_START;
+  u16int *loc;
   switch(byte)
   {
     case 0x0A: //Newline
       x = 0;
       y++;
       break;
+    case 0x08: //backspace
+      if(x != 0)
+	x--;
+      break;
     default: //It's a character
+      loc = ((y * 80 + x) * 2) + VIDEO_MEM_START;
       *loc = screen_byte;
       if(x != 80)
 	x++;
