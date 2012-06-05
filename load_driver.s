@@ -1,5 +1,5 @@
-[global prog_load];takes two arguments, address to load at + address from which to load
-prog_load:
+[global reloc_load];takes two arguments, address to load at + address from which to load
+reloc_load:
 mov eax, [esp + 4]; load address
 mov ebx, [esp + 8]; target address
 
@@ -17,9 +17,13 @@ load_loop:
   jmp load_loop
 
 run:
-mov ebx, [esp + 4]
+mov eax, [esp + 12];argc
+push eax
+mov eax, [esp + 16];argv
+push eax
+mov ebx, [esp + 4];load addr
 push ebx
 call ebx
-add esp, 4
+add esp, 12
 ret
 
