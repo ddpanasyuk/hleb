@@ -35,6 +35,8 @@ u8int write(FILE* f_ptr, char* buff, u32int len)
 
 u8int read(FILE* f_ptr, char* buff, u32int len)
 {
+  if(f_ptr->file_id == STDIN)
+    read_keyboard_buff(buff, len);
   return 0;
 }
 

@@ -8,7 +8,7 @@
 #include "stream.h"
 
 extern u32int end;
-extern void prog_load(u32int load, u32int from);
+extern void reloc_load(u32int load, u32int from, u32int argc, char* argv[]);
 
 int main(multiboot_info_t* mb_ptr)
 {
@@ -27,9 +27,12 @@ int main(multiboot_info_t* mb_ptr)
   create_syscall(0x80);
   
   asm volatile("sti");
-  FILE* f_ptr = open(STDOUT, 0);
-  char* text = "hello world!";
-  write(f_ptr, (void*)text, strlen(text));
+  //FILE* f_ptr = open(STDOUT, 0);
+  //char* text = "hello world!";
+  //write(f_ptr, (void*)text, strlen(text));
+  
+  init_keyboard();
+  
   /*
   if(mb_ptr->mods_count == 0)
     kprint("No GRUB modules found.\n");

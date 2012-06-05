@@ -2,9 +2,10 @@
 #include "stream.h"
 #include "console.h"
 #include "keyboard.h"
+#include "program.h"
 
 #define SYS_CALLS 8
-void *sys_array[SYS_CALLS] = { &kprint, &kprint_hex, &kput, &getchar, &open, &close, &read, &write};
+void *sys_array[SYS_CALLS] = { &kprint, &kprint_hex, &kput, &getchar, &open, &close, &read, &write, &load_executable};
 
 void create_syscall(u8int num)
 {
